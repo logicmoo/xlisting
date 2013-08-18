@@ -232,7 +232,7 @@ variable_name_or_ref(Var, Name) :- format(atom(Name),'~q',[Var]).
 %
 % Project Attributes.
 %
-vn:project_attributes(QueryVars, ResidualVars):- dmsg(vn:proj_attrs(vn,QueryVars, ResidualVars)),fail.
+vn:project_attributes(QueryVars, ResidualVars):- fail,dmsg(vn:proj_attrs(vn,QueryVars, ResidualVars)),fail.
 
 
 %% attribute_goals(@V)// is det.
@@ -252,7 +252,7 @@ get_var_name0(Var,Name):- var_property(Var,name(Name)),!.
 get_var_name0(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 get_var_name0(Var,Name):- nb_current('$old_variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 get_var_name0(Var,Name):- get_varname_list(Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
-get_var_name0(Var,Name):- attvar(Var),get_varname_list(Vs),format(atom(Name),'~W',[Var, [variable_names(Vs)]]).
+% get_var_name0(Var,Name):- attvar(Var),get_varname_list(Vs),format(atom(Name),'~W',[Var, [variable_names(Vs)]]).
 
 get_var_name1(Var,Name):- oo_get_attr(Var, vn, Name),!.
 get_var_name1('$VAR'(Name),Name):- atom(Name),!.
@@ -300,6 +300,7 @@ combine_names(Name1,Name2,Name):-
    (atomic_list_concat([Name2,'_',Name1],Name)))))).
 
 
+/*
 
 %=
 
@@ -307,10 +308,13 @@ combine_names(Name1,Name2,Name):-
 %
 % Attr Portray Hook.
 %
-vn:attr_portray_hook(Name, _) :- write('???'), write(Name),!.
+ % vn:attr_portray_hook(Name, _) :- write('???'), write(Name),!.
+
+:- multifile(user:portray/1).
+:- dynamic(user:portray/1).
+user:portray(Sk):- get_attr(Sk, vn, Name), get_attrs(Sk,att(vn,Name,[])),write(Name),!,write('{}').
 
 
-/*
 %% portray_attvar( ?Var) is semidet.
 %
 % Hook To [portray_attvar/1] For Module Logicmoo_varnames.
@@ -1080,9 +1084,11 @@ mpred_name_variables([Var|Vars]):-
 
 %% b_implode_varnames( ?VALUE1) is semidet.
 %
-% Backtackable Implode Varnames.
+% ?- b_implode_varnames(Vs),display(Vs).
 %
-b_implode_varnames(_):-!.
+% '$VAR'('Vs')
+%
+b_implode_varnames(T):- imploded_copyvars(T,TT),T=TT.
 
 %=
 
@@ -1100,16 +1106,24 @@ b_implode_varnames0([N=V|Vs]):- ignore((V='$VAR'(N);V=N)),b_implode_varnames0(Vs
 %
 % Imploded Copyvars.
 %
-imploded_copyvars(C,CT):-vmust((source_variables(Vs),copy_term(C-Vs,CT-VVs),b_implode_varnames(VVs))),!.
+imploded_copyvars(C,CT):-vmust((source_variables(Vs),copy_term(C-Vs,CT-VVs),b_implode_varnames0(VVs))),!.
+
 
 %% source_variables( ?Vs) is semidet.
 %
 % Source Variables.
 %
-source_variables(Vs):- (((prolog_load_context(variable_names,Vs),Vs\==[]);
-   (get_varname_list(Vs),Vs\==[]))),!.
-source_variables(Vars):-var(Vars),parent_goal('$toplevel':'$execute_goal2'(_, Vars),_),!.
-source_variables([]).
+source_variables(Vs):- 
+ prolog_load_context(variable_names,Vs2),
+ parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_),
+ append(Vs1,Vs2,Vs3),list_to_set(Vs3,Vs),
+ (Vs\==Vs2 -> b_setval('$variable_names',Vs) ; true).
+
+source_variables0(Vs):- 
+ prolog_load_context(variable_names,Vs2),
+ parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_),
+ append(Vs1,Vs2,Vs3),list_to_set(Vs3,Vs).
+ 
 
 
 
