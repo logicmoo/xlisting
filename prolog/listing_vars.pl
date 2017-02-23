@@ -309,7 +309,7 @@ portray_attvar(Var) :-
 */
 
 
-:- include('logicmoo_util_header.pi').
+
 :- set_module(class(library)).
 
 :- use_module(library(when)).

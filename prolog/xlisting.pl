@@ -196,7 +196,7 @@
         search_refs_use_recorded/0.
 
 :- set_module(class(library)).
-:- include('logicmoo_util_header.pi').
+
 
 :- export(mstatistics/0).
 
