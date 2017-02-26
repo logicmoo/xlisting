@@ -626,7 +626,7 @@ term_singletons(Fml, NS,NSO, S,NSV):- compound(Fml),Fml=..[_|T],!, term_singleto
 
 %=
 
-%% call_return_tf( :GoalCall, ?TF) is semidet.
+%% call_return_tf( :Goal, ?TF) is semidet.
 %
 % Call Return True/false.
 %
@@ -881,7 +881,7 @@ save_clause_vars(_M,H,_MB,B,Vs,Why):- ain00(varname_cache:varname_info(H,B,Vs,Wh
 %
 % Assert If New Primary Helper Primary Helper.
 %
-ain00(A):- logicmoo_util_database:clause_asserted(A),!.
+ain00(A):- hook_database:clause_asserted(A),!.
 ain00(A):- assertz(A).
 
 

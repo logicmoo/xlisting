@@ -516,7 +516,7 @@ get_search_ref0(Atomic,Results):- unify_in_thread(main,once(get_search_ref_tl(At
 
 %= 	 	 
 
-%% unify_in_thread( +Thread, :GoalGoal) is semidet.
+%% unify_in_thread( +Thread, :Goal) is semidet.
 %
 % Unify In Thread.
 %
@@ -544,7 +544,7 @@ process_unify_in_thread(Message,Goal):-throw(unknown_process_unify_in_thread(Mes
 
 %= 	 	 
 
-%% unify_in_thread_tl( ?Id, :GoalGoal) is semidet.
+%% unify_in_thread_tl( ?Id, :Goal) is semidet.
 %
 % Unify In Thread Thread Local.
 %
@@ -690,7 +690,7 @@ unify_listing(Cntxt:Pred,F,A):- unify_listing_header(Cntxt:Pred,F,A), Cntxt:prin
 
 %= 	 	 
 
-%% printAll( :GoalCall) is semidet.
+%% printAll( :Goal) is semidet.
 %
 % Print All.
 %
@@ -698,7 +698,7 @@ printAll(Call):-printAll(Call,Call).
 
 %= 	 	 
 
-%% printAll( :GoalCall, ?Print) is semidet.
+%% printAll( :Goal, ?Print) is semidet.
 %
 % Print All.
 %
