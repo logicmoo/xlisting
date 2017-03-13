@@ -724,6 +724,8 @@ contains_term_unifiable(SearchThis,Find):-compound(SearchThis),functor_safe(Sear
 
 xlisting:- xlisting([]).
 
+:- create_prolog_flag(retry_undefined,default,[type(term),keep(true)]).
+
 %= 	 	 
 
 %% xlisting( ?Match) is semidet.

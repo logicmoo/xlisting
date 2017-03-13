@@ -1355,7 +1355,7 @@ print_numbervars_1(H):- loop_check(print_numbervars_2(H),format('~N~q.~n',[H])).
 print_numbervars_2(H):- current_output(S),prolog_listing:portray_clause(S,H,[portrayed(true),singletons(false)]),!.
 print_numbervars_2(H):- write_term(H,[portrayed(false)]),nl,!.
 
-:- multifile(t_l:disable_px/0).
+
 :- thread_local(t_l:disable_px/0).
 
 
@@ -1367,7 +1367,8 @@ print_numbervars_2(H):- write_term(H,[portrayed(false)]),nl,!.
 %
 term_expansion_save_vars(HB):- \+ ground(HB),  \+ t_l:dont_varname_te,\+ t_l:dont_varname, % \+ current_prolog_flag(xref, true),
    current_predicate(listing_vars_file/0), current_prolog_flag(source_variables,true),
-   source_context_module(M),init_varname_stores(M),logicmoo_util_with_assertions:locally([t_l:dont_varname_te,t_l:disable_px],try_save_vars(M:HB)),!,fail.
+   source_context_module(M),init_varname_stores(M),
+   logicmoo_util_with_assertions:locally([t_l:dont_varname_te,t_l:disable_px],try_save_vars(M:HB)),!,fail.
 
 
 without_varname_scan(Goal):-
