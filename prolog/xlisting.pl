@@ -1318,7 +1318,7 @@ portray_one_line(H):-  notrace((catch_each(portray_one_line0(H),_,(writeq(H),wri
 portray_one_line0(H):- baseKB:portray_one_line_hook(H),!.
 portray_one_line0(H):- maybe_separate(H,(format('~N'))),fail.
 portray_one_line0(H):- \+ \+ ((logicmoo_varnames:get_clause_vars(H), portray_clause(H))),!.
-portray_one_line0(H):- user:portray(H),write('.'),nl,!.
+portray_one_line0(H):- on_x_fail(user:portray(H)),write('.'),nl,!.
 portray_one_line0(H):- print(H),write('.'),nl,!.
 portray_one_line0(H):- writeq(H),write('.'),nl,!.
 

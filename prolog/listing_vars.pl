@@ -1311,7 +1311,7 @@ ensure_vars_labled(I,I).
 % Hook To [user:portray/1] For Module Logicmoo_varnames.
 % Portray.
 %
-user:portray(A) :-  \+ tracing,
+user:portray(A) :- fail, \+ tracing,
   catch(notrace(((compound(A);var(A)), current_prolog_flag(source_variables, true), set_prolog_flag(source_variables, false),
     call_cleanup((((user:portray(A) -> ! ; print_numbervars_maybe(A)))),set_prolog_flag(source_variables, true)))),E,(writeq(E),nl,fail)).
 
