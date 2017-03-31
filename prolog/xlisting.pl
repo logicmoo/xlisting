@@ -33,7 +33,7 @@
             get_search_ref0/2,
             get_search_ref_tl/2,
             hide_data0/1,
-            listing_filter/1,
+            is_listing_hidden/1,
             m_clause/4,
             m_clause0/4,
             m_clause_no_missing/4,
@@ -132,7 +132,7 @@
         get_search_ref0/2,
         get_search_ref_tl/2,        
         hide_data0/1,
-        listing_filter/1,
+        is_listing_hidden/1,
         m_clause/4,
         m_clause0/4,
         m_clause_no_missing/4,
@@ -176,7 +176,6 @@
         searchable_of_clause_1/3,
         searchable_terms/1,
         searchable_terms_tl/1,
-        baseKB:shared_hide_data/1,
         sourceTextPredicate/1,
         sourceTextPredicateSource/1,
         synth_clause_for/5,
@@ -601,7 +600,9 @@ save_search_ref_tl(Ref,Atomic):-nb_setval(Atomic,[Ref]).
 % that is    CL=beliefs(we,loves(joe,turkey)), asserta(C,Ref),forall(find_each_atom(CL,A),(assert_if_new(idexed_atom(A)),asserta(atom_index(A,Ref)))).
 
 
+
 :- multifile baseKB:shared_hide_data/1.
+:- kb_shared(baseKB:shared_hide_data/1).
 
 
 %= 	 	 
@@ -610,20 +611,20 @@ save_search_ref_tl(Ref,Atomic):-nb_setval(Atomic,[Ref]).
 %
 % Shared Hide Data.
 %
-baseKB:shared_hide_data(lmcache:varname_info/4):- !,listing_filter(hideMeta).
-baseKB:shared_hide_data(lmcache:_):- listing_filter(hideMeta).
-baseKB:shared_hide_data(wid):- listing_filter(hideMeta).
+baseKB:shared_hide_data(lmcache:varname_info/4):- !,is_listing_hidden(hideMeta).
+baseKB:shared_hide_data(lmcache:_):- is_listing_hidden(hideMeta).
+baseKB:shared_hide_data(wid):- is_listing_hidden(hideMeta).
 
 
 %= 	 	 
 
-%% listing_filter( ?P) is semidet.
+%% is_listing_hidden( ?P) is semidet.
 %
 % Listing Filter.
 %
-listing_filter(P):-notrace(hide_data0(P)).
+is_listing_hidden(P):-notrace(hide_data0(P)).
 
-:- baseKB:import(xlisting:listing_filter/1).
+:- baseKB:import(xlisting:is_listing_hidden/1).
 
 %= 	 	 
 
@@ -633,12 +634,12 @@ listing_filter(P):-notrace(hide_data0(P)).
 %
 hide_data0(P):-var(P),!,fail.
 hide_data0(~(_)):-!,fail.
-hide_data0(hideMeta):-listing_filter(showAll),!,fail.
+hide_data0(hideMeta):-is_listing_hidden(showAll),!,fail.
 hide_data0(P):-t_l:tl_hide_data(P),!.
 hide_data0(P):-baseKB:shared_hide_data(P),!.
 hide_data0(_/_):-!,fail.
 hide_data0(P):- compound(P),functor(P,F,A), (hide_data0(F/A);hide_data0(F)).
-hide_data0(M:P):- atom(M),(listing_filter(M);hide_data0(P)).
+hide_data0(M:P):- atom(M),(is_listing_hidden(M);hide_data0(P)).
 
 
 :- meta_predicate unify_listing(:).
@@ -819,7 +820,7 @@ xlisting_inner(Pred,Match,SkipPI):-
    PREDZ = ( must(synth_clause_for(H,B,Ref,Size,SYNTH)), \+member(H,SkipPI)),
    forall(PREDZ,
      must(( 
-      (listing_filter(wholePreds),Size<100) 
+      (is_listing_hidden(wholePreds),Size<100) 
         -> 
           ( \+ \+ ((SYNTH,MATCHER)) -> (forall(SYNTH,PRINT)) ; true) 
          ; 
@@ -919,11 +920,11 @@ plisting_1:-plisting(spft(_,_,_,_)).
 %
 % Synth Clause For.
 %
-synth_clause_for(G,true,0,244,SYNTH):-  bookeepingPredicateXRef(G), notrace(( \+ listing_filter(hideMeta))), SYNTH=on_x_fail(G).
-synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), ((notrace(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), \+ listing_filter(G))))), 
+synth_clause_for(G,true,0,244,SYNTH):-  bookeepingPredicateXRef(G), notrace(( \+ is_listing_hidden(hideMeta))), SYNTH=on_x_fail(G).
+synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), ((notrace(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), \+ is_listing_hidden(G))))), 
                                                                 SYNTH = (synth_clause_ref(G,B,Ref,Size,SYNTH2),SYNTH2).
-synth_clause_for(G,true,0,222, SYNTH):-  sourceTextPredicate(G), \+ listing_filter(G), SYNTH = on_x_fail(G).
-synth_clause_for(G,  B, Ref,Size, SYNTH):- \+ listing_filter(skipLarge), gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
+synth_clause_for(G,true,0,222, SYNTH):-  sourceTextPredicate(G), \+ is_listing_hidden(G), SYNTH = on_x_fail(G).
+synth_clause_for(G,  B, Ref,Size, SYNTH):- \+ is_listing_hidden(skipLarge), gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
  
 
 %= 	 	 
@@ -944,10 +945,10 @@ synth_clause_for_l2(M:H,B,Ref,Size,SYNTH):-
 % Synth Clause For Large.
 %
 synth_clause_for_large(_,_,_,[   ],0,(!,fail)):-!.
-synth_clause_for_large(_,_,_,[_|_],0,(!,fail)):- listing_filter(skipLarge),!.
+synth_clause_for_large(_,_,_,[_|_],0,(!,fail)):- is_listing_hidden(skipLarge),!.
 synth_clause_for_large(M:H,B,Ref,KeySorted,Size,m_clause(M,H,B,Ref)):-   
     %  format('~N% Synthesizing the larger preds now ~q .~n',[KeySorted]),!,
-      member( (Size- (M:H)) , KeySorted) *-> \+ listing_filter(M:H).
+      member( (Size- (M:H)) , KeySorted) *-> \+ is_listing_hidden(M:H).
 
 :- export((synth_clause_ref/5)).
 
@@ -959,12 +960,12 @@ synth_clause_for_large(M:H,B,Ref,KeySorted,Size,m_clause(M,H,B,Ref)):-
 %
 synth_clause_ref(_:no_xlisting(_),_B,_Ref, _Size, _CALL):-!,fail.
 synth_clause_ref(_:in_prolog_listing(_),_B,_Ref, _Size, _CALL):-!,fail.
-synth_clause_ref(_:varname_info(_,_,_,_),_B,_Ref,_Size, _CALL):- \+ listing_filter(showAll),!,fail.
+synth_clause_ref(_:varname_info(_,_,_,_),_B,_Ref,_Size, _CALL):- \+ is_listing_hidden(showAll),!,fail.
 
-synth_clause_ref(M:H,B,Ref, 250, SYNTH):- \+ listing_filter(hideMeta), SYNTH= (findall(PP,predicate_property(M:H,PP),PPL),Ref=0,CPPL=..[pp|PPL],B=M:(pp(CPPL))).
+synth_clause_ref(M:H,B,Ref, 250, SYNTH):- \+ is_listing_hidden(hideMeta), SYNTH= (findall(PP,predicate_property(M:H,PP),PPL),Ref=0,CPPL=..[pp|PPL],B=M:(pp(CPPL))).
 synth_clause_ref(MHG,B,Ref, 213, SYNTH):- predicateUsesCall(MHG),synth_in_listing(MHG), !, SYNTH= (on_x_fail(MHG),Ref=0,B=predicateUsedCall).
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),
-  (Size > 5000 ->  ( \+ listing_filter(skipLarge), asserta(t_l:large_predicates(M:H,Size)),fail) ; SYNTH = m_clause(M,H,B,Ref)).
+  (Size > 5000 ->  ( \+ is_listing_hidden(skipLarge), asserta(t_l:large_predicates(M:H,Size)),fail) ; SYNTH = m_clause(M,H,B,Ref)).
 
 
 
@@ -974,7 +975,7 @@ synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_claus
 %
 % Synth In Listing.
 %
-synth_in_listing(MH):- ( \+ listing_filter(MH), \+ sourceTextPredicateSource(MH) ),!.
+synth_in_listing(MH):- ( \+ is_listing_hidden(MH), \+ sourceTextPredicateSource(MH) ),!.
 
 :- export((term_matches_hb/3)).
 
@@ -1540,4 +1541,6 @@ prolog_listing:portray_clause(Stream, Term, M:Options) :-
 prolog_listing:list_clauses(Pred, Context):- prolog_listing_list_clauses(Pred, Context).
 
 :- endif.
+
+:- fixup_exports.
 
