@@ -17,6 +17,7 @@
           use_listing_vars/1,
           use_xlisting/0,
           use_xlisting/1,
+          get_print_mode/1,               
           pi_to_head_l/2,
           xlisting0/1,
             bad_pred/1,
@@ -195,6 +196,7 @@
         search_refs_use_recorded/0.
 
 :- set_module(class(library)).
+:- thread_local(t_l:print_mode/1).
 
 
 :- export(mstatistics/0).
@@ -454,7 +456,7 @@ searchable_terms(T):-unify_in_thread(main,searchable_terms_tl(T)).
 % load statistics to keep ifprolog from overriding time/1.
 :- abolish(system:time/1).
 :- abolish(time/1).
-:- use_module(ifprolog:library(dialect/ifprolog),[current_global/1]).
+:- use_module(xlisting:library(dialect/ifprolog),[current_global/1]).
 :- abolish(ifprolog:time/1).
 :- use_module(library(statistics),[time/1]).
 
@@ -1506,6 +1508,12 @@ prolog_listing_portray_clause(Stream, Term, M:Options) :- fail,
 	      ),!.
 
 % prolog_listing:portray_clause(Stream, Term, M:Options) :- xlisting:prolog_listing_portray_clause(Stream, Term, M:Options).
+
+:- export(get_print_mode/1).
+get_print_mode(PM):- nonvar(PM),!,get_print_mode(PMR),!,PM==PMR.
+get_print_mode(PM):- t_l:print_mode(PM),!.
+get_print_mode(html):- on_x_log_fail(httpd_wrapper:http_current_request(_)).
+get_print_mode(text).
 
 
 :- if(true).
