@@ -967,6 +967,8 @@ synth_clause_ref(_:varname_info(_,_,_,_),_B,_Ref,_Size, _CALL):- \+ is_listing_h
 synth_clause_ref(M:H,B,Ref, 250, SYNTH):- \+ is_listing_hidden(hideMeta), SYNTH= (findall(PP,predicate_property(M:H,PP),PPL),Ref=0,CPPL=..[pp|PPL],B=M:(pp(CPPL))).
 synth_clause_ref(MHG,B,Ref, 213, SYNTH):- predicateUsesCall(MHG),synth_in_listing(MHG), !, SYNTH= (on_x_fail(MHG),Ref=0,B=predicateUsedCall).
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),
+  (Size > 500000,  !,  is_listing_hidden(showHUGE), SYNTH = m_clause(M,H,B,Ref).
+synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),
   (Size > 5000 ->  ( \+ is_listing_hidden(skipLarge), asserta(t_l:large_predicates(M:H,Size)),fail) ; SYNTH = m_clause(M,H,B,Ref)).
 
 
