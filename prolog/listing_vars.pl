@@ -200,9 +200,8 @@
 %	variable (anymore).
 
 
-name_variable(Var,_Name) :- nonvar(Var),!.
-name_variable(Var,Name) :- !, put_attr(Var,vn,Name).
-
+%name_variable(Var,_Name) :- nonvar(Var),!.
+%name_variable(Var,Name) :- !, put_attr(Var,vn,Name).
 
 name_variable(Var, Name1) :- get_attr(Var,vn,Name2),
         combine_names(Name1,Name2,Name),
@@ -233,7 +232,7 @@ variable_name_or_ref(Var, Name) :- format(atom(Name),'~q',[Var]).
 %
 % Project Attributes.
 %
-vn:project_attributes(QueryVars, ResidualVars):-nop(dmsg(vn:proj_attrs(vn,QueryVars, ResidualVars))).
+vn:project_attributes(QueryVars, ResidualVars):- dmsg(vn:proj_attrs(vn,QueryVars, ResidualVars)),fail.
 
 
 %% attribute_goals(@V)// is det.
@@ -242,11 +241,27 @@ vn:project_attributes(QueryVars, ResidualVars):-nop(dmsg(vn:proj_attrs(vn,QueryV
 %  Hook To [dom:attribute_goals/3] For Module Logicmoo_varnames.
 %  Attribute Goals.
 %
-vn:attribute_goals(Var, B, B) :- cyclic_term(Var),!.
-vn:attribute_goals(Var, [name_variable(Var,  Name)|B], B) :- get_attr(Var, vn, Name),!.
-vn:attribute_goals(_Var, B, B):-!.
-vn:attribute_goals(Var, [name_variable(Var,  Name)|B], B) :- variable_name(Var,  Name).
-% vn:attribute_goals(_Var) --> [].
+vn:attribute_goals(Var) --> {get_var_name(Var,  Name)},[name_variable(Var,  Name)],!.
+
+get_var_name(V,N):-notrace(get_var_name0(V,N)),!.
+
+get_var_name0(Var,Name):- nonvar(Name),!,must(get_var_name0(Var, NameO)),!,Name=NameO.
+get_var_name0(Var,Name):- nonvar(Var),!,get_var_name1(Var,Name).
+get_var_name0(Var,Name):- get_attr(Var, vn, Name),!.
+get_var_name0(Var,Name):- var_property(Var,name(Name)),!.
+get_var_name0(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
+get_var_name0(Var,Name):- nb_current('$old_variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
+get_var_name0(Var,Name):- get_varname_list(Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
+get_var_name0(Var,Name):- attvar(Var),get_varname_list(Vs),format(atom(Name),'~W',[Var, [variable_names(Vs)]]).
+
+get_var_name1(Var,Name):- oo_get_attr(Var, vn, Name),!.
+get_var_name1('$VAR'(Name),Name):- atom(Name),!.
+get_var_name1('$VAR'(Att3),Value):- !, get_var_name1(Att3,Value).
+get_var_name1('avar'(Att3),Value):- !, get_var_name1(Att3,Value).
+get_var_name1('avar'(Name,Att3),Value):- !, get_var_name1('$VAR'(Name),Value); get_var_name1('avar'(Att3),Value).
+get_var_name1(att(vn,Value,_),Value):- !.
+get_var_name1(att(_,_,Rest),Value):- Rest\==[],get_var_name1(Rest,Value).
+
 
 
 %:- public ((attr_unify_hook/2,attr_portray_hook/2)).
@@ -264,6 +279,7 @@ vn:attribute_goals(Var, [name_variable(Var,  Name)|B], B) :- variable_name(Var, 
 % Hook To [dom:attr_unify_hook/2] For Module Logicmoo_varnames.
 % Attr Unify Hook.
 %
+
 vn:attr_unify_hook(_, Var):- nonvar(Var),!.
 vn:attr_unify_hook(_, Var):- cyclic_term(Var),!,fail.
 vn:attr_unify_hook(_, Var):- cyclic_term(Var),!.
@@ -764,6 +780,7 @@ set_varname(How,N=V):-must(set_varname(How,N,V)),!.
 %
 set_varname(How,N,V):- (var(How);var(N)),trace_or_throw(var_var_set_varname(How,N,V)).
 set_varname(_,_,NV):-nonvar(NV),ignore((NV='$VAR'(N),must(number(N);atom(N)))).
+set_varname(_,_,V):-atom(V),!.
 set_varname(How,'$VAR'(Name),V):- !, set_varname(How,Name,V).
 set_varname(_:[How],N,V):- !, set_varname(How,N,V).
 set_varname(_:[How|List],N,V):- !, set_varname(How,N,V),set_varname(List,N,V).
@@ -787,7 +804,7 @@ write_functor(N=V):-write_functor(N,V).
 %
 % Write Functor.
 %
-write_functor(N,V):-!,put_attr(V,vn,N).
+write_functor(N,V):-var(V),!,put_attr(V,vn,N).
 write_functor(N,V):-ignore('$VAR'(N)=V),!.
 
 :-export(save_clause_vars/2).
