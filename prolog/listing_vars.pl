@@ -520,7 +520,8 @@ get_clause_vars(_,_):- !.
 % Get Clause Variables Copy.
 %
 get_clause_vars_copy(HB,HB):- ground(HB),!.
-% get_clause_vars_copy(HH,HH):- sub_term(S,HH),compound(S),S='$VAR'(_),!. % already labled
+get_clause_vars_copy(HH,HH):- sub_term(S,HH),compound(S),S='$VAR'(_),!. % already labled
+get_clause_vars_copy(H0,MHB):- copy_term(H0,MHB),!.
 get_clause_vars_copy(H0,MHB):-
     source_variables_lv(AllS),
     must((copy_term(H0+AllS,MHB+CAllS),
@@ -1096,8 +1097,9 @@ b_implode_varnames(T):- imploded_copyvars(T,TT),T=TT.
 %
 % Backtackable Implode Varnames Primary Helper.
 %
-b_implode_varnames0([]):-!.
-b_implode_varnames0([N=V|Vs]):- ignore((V='$VAR'(N);V=N)),b_implode_varnames0(Vs),!.
+
+b_implode_varnames0([N=V|Vs]):-!, sanity(is_list(Vs)),ignore((nonvar(N),V='$VAR'(N);V=N)),b_implode_varnames0(Vs),!.
+b_implode_varnames0(_).
 
 
 %=
