@@ -198,6 +198,8 @@
 :- set_module(class(library)).
 :- thread_local(t_l:print_mode/1).
 
+:- abolish(user:listing/1).
+
 :- export(mstatistics/0).
 
 :- prolog_load_context(directory,Dir),asserta(baseKB:mpred_loader_dir(Dir)).
