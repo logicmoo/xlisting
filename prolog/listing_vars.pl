@@ -224,7 +224,7 @@ name_variable(_, _).
 
 variable_name(Var, Name) :- must(var(Var)),(get_attr(Var, vn, Name);var_property(Var,name(Name));get_attr(Var, varnames, Name)),!.
 
-variable_name_or_ref(Var, Name) :- var(Var), variable_name(Var, Name),!.
+variable_name_or_ref(Var, Name) :- get_var_name(Var, Name),!.
 variable_name_or_ref(Var, Name) :- format(atom(Name),'~q',[Var]).
 
 
@@ -250,17 +250,20 @@ get_var_name0(Var,Name):- nonvar(Var),!,get_var_name1(Var,Name).
 get_var_name0(Var,Name):- get_attr(Var, vn, Name),!.
 get_var_name0(Var,Name):- var_property(Var,name(Name)),!.
 get_var_name0(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
+get_var_name0(Var,Name):- get_attr(Var, varnames, Name),!.
 get_var_name0(Var,Name):- nb_current('$old_variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 get_var_name0(Var,Name):- get_varname_list(Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 % get_var_name0(Var,Name):- attvar(Var),get_varname_list(Vs),format(atom(Name),'~W',[Var, [variable_names(Vs)]]).
 
 get_var_name1(Var,Name):- oo_get_attr(Var, vn, Name),!.
 get_var_name1('$VAR'(Name),Name):- atom(Name),!.
-get_var_name1('$VAR'(Att3),Value):- !, get_var_name1(Att3,Value).
-get_var_name1('avar'(Att3),Value):- !, get_var_name1(Att3,Value).
+get_var_name1('$VAR'(Var),Name):- var(Var),!,get_var_name0(Var,Name).
+get_var_name1('$VAR'(Att3),Name):- !, get_var_name1(Att3,Name).
+get_var_name1('avar'(Att3),Name):- !, get_var_name1(Att3,Name).
 get_var_name1('avar'(Name,Att3),Value):- !, get_var_name1('$VAR'(Name),Value); get_var_name1('avar'(Att3),Value).
-get_var_name1(att(vn,Value,_),Value):- !.
-get_var_name1(att(_,_,Rest),Value):- Rest\==[],get_var_name1(Rest,Value).
+get_var_name1(att(vn,Name,_),Name):- !.
+get_var_name1(att(_,_,Rest),Name):- Rest\==[],get_var_name1(Rest,Name).
+get_var_name1(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 
 
 
@@ -271,6 +274,8 @@ get_var_name1(att(_,_,Rest),Value):- Rest\==[],get_var_name1(Rest,Value).
 %:- export(attr_portray_hook/2).
 %:- export(attribute_goals/3).
 
+:- thread_local(t_l:varname_lock/1).
+when_var_locked(What):- t_l:varname_lock(What),!.
 
 :- thread_local(t_l:no_kif_var_coroutines/1).
 
@@ -279,25 +284,35 @@ get_var_name1(att(_,_,Rest),Value):- Rest\==[],get_var_name1(Rest,Value).
 % Hook To [dom:attr_unify_hook/2] For Module Logicmoo_varnames.
 % Attr Unify Hook.
 %
-
-vn:attr_unify_hook(_, Var):- nonvar(Var),!.
-vn:attr_unify_hook(_, Var):- cyclic_term(Var),!,fail.
-vn:attr_unify_hook(_, Var):- cyclic_term(Var),!.
-% vn:attr_unify_hook(_, Var):- cyclic_break(Var),!,fail.
-vn:attr_unify_hook(Name1, Var):- get_attr(Var, vn, Name2),Name1==Name2,!.
-vn:attr_unify_hook(Name1, Var):- get_attr(Var, vn, Name2),!,ignore(Name1==Name2),!.
-
-
-vn:attr_unify_hook(Name1, Var):- get_attr(Var, vn, Name2),!,combine_names(Name1,Name2,Name),(Name2==Name->true;put_attr(Var,vn,Name)).
-vn:attr_unify_hook(Name1, Var):- var(Var),!,put_attr(Var, vn, Name1).
-vn:attr_unify_hook(_Form, _OtherValue):- t_l:no_kif_var_coroutines(G),!,call(G).
+vn:attr_unify_hook(Name1, Var):- when_var_locked(What),!,(unify_name_based(Name1, Var)->true;call(What,Var)).
+vn:attr_unify_hook(Name1, Var):- unify_name_based(Name1, Var).
 vn:attr_unify_hook(_Form, _OtherValue):-!.
+
+
+
+unify_name_based(Var1, Var2):- \+ atom(Var1),get_var_name_or_ref(Var1,Name),!,unify_name_based(Name, Var2).
+unify_name_based(_Form, _OtherValue):- t_l:no_kif_var_coroutines(G),!,call(G).
+unify_name_based(Name1, Var):-  get_var_name(Var,Name2),!,Name1=Name2,!.
+unify_name_based(Name1, Var):- get_attr(Var, vn, Name2),!,combine_names(Name1,Name2,Name),(Name2==Name->true;put_attr(Var,vn,Name)).
+unify_name_based(Name1, Var):- var(Var),!,put_attr(Var, vn, Name1).
+unify_name_based(_, Var):- nonvar(Var),!.
+%unify_name_based(_, Var):- cyclic_term(Var),!,fail.
+%unify_name_based(_, Var):- cyclic_term(Var),!.
+%unify_name_based(_, Var):- cyclic_break(Var),!,fail.
 
 combine_names(Name1,Name2,Name1):-Name1==Name2,!.
 combine_names(Name1,Name2,Name):-
  ((atom_concat(_,Name1,Name2);atom_concat(Name1,_,Name2)) -> Name=Name2 ; (
    ((atom_concat(Name2,_,Name1);atom_concat(_,Name2,Name1)) -> Name=Name1 ; (
-   (atomic_list_concat([Name2,'_',Name1],Name)))))).
+   (combine_names_dash(Name1,Name2,Name)))))).
+
+combine_names_dash(Name1,Name2,Name):- number_name(Name2),!,Name=Name1.
+combine_names_dash(Name1,Name2,Name):- number_name(Name1),!,Name=Name2.
+combine_names_dash(Name1,Name2,Name):- word_name(Name2),!,atomic_list_concat([Name2,'_',Name1],Name),!.
+combine_names_dash(Name1,Name2,Name):- atomic_list_concat([Name1,'_',Name2],Name),!.
+
+number_name(Name):- name(Name,[95,Number|_]),char_type(Number,digit).
+word_name(Name):- name(Name,[A,_|_]),char_type(A,upper).
 
 
 /*
