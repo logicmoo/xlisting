@@ -284,7 +284,7 @@ when_var_locked(What):- t_l:varname_lock(What),!.
 % Attr Unify Hook.
 %
 vn:attr_unify_hook(Name1, Var):- when_var_locked(What),!,(unify_name_based(Name1, Var)->true;call(What,Var)).
-vn:attr_unify_hook(Name1, Var):- unify_name_based(Name1, Var).
+vn:attr_unify_hook(Name1, Var):- var(Var),unify_name_based(Name1, Var),!.
 vn:attr_unify_hook(_Form, _OtherValue):-!.
 
 
