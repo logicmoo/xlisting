@@ -196,6 +196,10 @@
         search_refs_use_recorded/0.
 
 :- set_module(class(library)).
+
+:- use_module(library(hook_hybrid)).
+:- use_module(library(virtualize_source)).
+
 :- thread_local(t_l:print_mode/1).
 
 :- abolish(user:listing/1).
