@@ -1113,7 +1113,7 @@ b_implode_varnames(T):- imploded_copyvars(T,TT),T=TT.
 % Backtackable Implode Varnames Primary Helper.
 %
 
-b_implode_varnames0([N=V|Vs]):-!, sanity(is_list(Vs)),ignore((nonvar(N),V='$VAR'(N);V=N)),b_implode_varnames0(Vs),!.
+b_implode_varnames0([N=V|Vs]):- sanity(is_list(Vs)),ignore((nonvar(N),V='$VAR'(N);V=N)),b_implode_varnames0(Vs),!.
 b_implode_varnames0(_).
 
 
