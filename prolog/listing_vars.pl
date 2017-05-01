@@ -1131,14 +1131,14 @@ imploded_copyvars(C,CT):-vmust((source_variables(Vs),copy_term(C-Vs,CT-VVs),b_im
 % Source Variables.
 %
 source_variables(Vs):- 
- prolog_load_context(variable_names,Vs2),
- parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_),
+ (prolog_load_context(variable_names,Vs2);Vs2=[]),
+ (parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_);Vs1=[]),
  append(Vs1,Vs2,Vs3),list_to_set(Vs3,Vs),
  (Vs\==Vs2 -> b_setval('$variable_names',Vs) ; true).
 
 source_variables0(Vs):- 
- prolog_load_context(variable_names,Vs2),
- parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_),
+ (prolog_load_context(variable_names,Vs2);Vs2=[]),
+ (parent_goal('$toplevel':'$execute_goal2'(_, Vs1),_);Vs1=[]),
  append(Vs1,Vs2,Vs3),list_to_set(Vs3,Vs).
  
 
