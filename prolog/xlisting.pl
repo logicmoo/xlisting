@@ -609,7 +609,8 @@ save_search_ref_tl(Ref,Atomic):-nb_setval(Atomic,[Ref]).
 
 
 :- multifile baseKB:shared_hide_data/1.
-:- kb_shared(baseKB:shared_hide_data/1).
+:- dynamic(baseKB:shared_hide_data/1).
+% :- kb_shared(baseKB:shared_hide_data/1).
 
 
 %= 	 	 
