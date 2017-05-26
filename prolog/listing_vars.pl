@@ -1474,6 +1474,6 @@ prolog:make_hook(before, Files):-forall(member(File,Files),retractall(varname_ca
 %
 user:term_expansion(HB,_):- current_prolog_flag(source_variables,true),term_expansion_save_vars(HB),fail.
 
-
+:- use_module(library(logicmoo_util_common)).
 :- fixup_exports.
 
