@@ -246,9 +246,9 @@ vn:attribute_goals(Var) --> {get_var_name(Var,  Name)},!,[name_variable(Var,  Na
 
 get_var_name(V,N):-notrace(get_var_name0(V,N)),!.
 
-get_var_name0(Var,Name):- oo_get_attr(Var, vn, Name),ground(Name),!.
 get_var_name0(Var,Name):- nonvar(Name),!,must(get_var_name0(Var, NameO)),!,Name=NameO.
-get_var_name0(Var,Name):- nonvar(Var),!,get_var_name1(Var,Name).
+get_var_name0(Var,Name):- nonvar(Var),!,get_var_name1(Var,Name),!.
+get_var_name0(Var,Name):- get_attr(Var, vn, Name),!.
 get_var_name0(Var,Name):- var_property(Var,name(Name)),!.
 get_var_name0(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
 get_var_name0(Var,Name):- get_attr(Var, varnames, Name),!.
@@ -257,13 +257,14 @@ get_var_name0(Var,Name):- get_varname_list(Vs),member(Name=V,Vs),atomic(Name),V=
 % get_var_name0(Var,Name):- attvar(Var),get_varname_list(Vs),format(atom(Name),'~W',[Var, [variable_names(Vs)]]).
 
 get_var_name1('$VAR'(Name),Name):- atom(Name),!.
-get_var_name1('$VAR'(Var),Name):- var(Var),!,get_var_name0(Var,Name).
+get_var_name1('$VAR'(Var),Name):- (var(Var)->get_var_name0(Var,Name);Name=Var),!.
 get_var_name1('$VAR'(Att3),Name):- !, get_var_name1(Att3,Name).
 get_var_name1('avar'(Att3),Name):- !, get_var_name1(Att3,Name).
 get_var_name1('avar'(Name,Att3),Value):- !, get_var_name1('$VAR'(Name),Value); get_var_name1('avar'(Att3),Value).
 get_var_name1(att(vn,Name,_),Name):- !.
 get_var_name1(att(_,_,Rest),Name):- Rest\==[],get_var_name1(Rest,Name).
 get_var_name1(Var,Name):- nb_current('$variable_names', Vs),member(Name=V,Vs),atomic(Name),V==Var,!.
+get_var_name1(Var,Name):- oo_get_attr(Var, vn, Name),!. % ground(Name),!.
 
 
 
