@@ -202,8 +202,6 @@
 
 :- thread_local(t_l:print_mode/1).
 
-:- abolish(user:listing/1).
-
 :- export(mstatistics/0).
 
 :- prolog_load_context(directory,Dir),asserta(baseKB:mpred_loader_dir(Dir)).
@@ -752,9 +750,10 @@ xlisting(M:F/A):-integer(A),!,functor(P,F,A),xlisting(M:P),!.
 xlisting(Match):- 
  % maybe_scan_for_varnames,
  locally(t_l:no_xlisting(Match),
-  locally(set_prolog_flag(retry_undefined,false),
-   locally(set_prolog_flag(verbose_load,false), 
-     xlisting0(Match)))).
+  locally(set_prolog_flag(verbose_autoload,false),
+   locally(set_prolog_flag(retry_undefined,false),
+    locally(set_prolog_flag(verbose_load,false), 
+     xlisting0(Match))))).
 
 
 xlisting0(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_pi(Match,PI),SkipPI),!,
@@ -1537,6 +1536,7 @@ get_print_mode(text).
 
 :- if(true).
 
+:- abolish(user:listing/1).
 :- reconsult(library(listing)).
 
 :- redefine_system_predicate(prolog_listing:portray_clause/3).
