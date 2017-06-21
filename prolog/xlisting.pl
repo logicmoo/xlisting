@@ -103,6 +103,9 @@
             xlisting/0,
             xlisting_inner/3
     ]).
+
+:- dynamic((xlisting:'$exported_op'/3)).
+
 :- multifile     
         baseKB:shared_hide_data/1,
         synth_clause_for/5.
@@ -461,6 +464,7 @@ searchable_terms(T):-unify_in_thread(main,searchable_terms_tl(T)).
 :- abolish(time/1).
 :- use_module(xlisting:library(dialect/ifprolog),[current_global/1]).
 :- abolish(ifprolog:time/1).
+:- use_module(xlisting:library(dialect/ifprolog),[]).
 :- use_module(library(statistics),[time/1]).
 
 /*
