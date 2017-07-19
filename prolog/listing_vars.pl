@@ -25,9 +25,9 @@
             term_slots/2,
             never_bound/1,
             dif_matrix/2,
-            term_singletons/2,
-          term_singletons/3,
-          term_singletons/5,
+            term_singleslots/2,
+          term_singleslots/3,
+          term_singleslots/5,
             set_varname/2,
             set_varname/3,
             write_functor/2,
@@ -105,6 +105,8 @@
 
 /** <module> Name Prolog variables (debugging)
 */
+
+:- use_module(library(rtrace)).
 
 :- multifile
         prolog:make_hook/2.
@@ -623,42 +625,42 @@ try_get_inner_vars(H):- once((functor(H,_,N),arg(N,H,List),member(vars(Vs),List)
 % Hook To [mpred_type_wff:term_slots/2] For Module Logicmoo_varnames.
 % Term Slots.
 %
-term_slots(Term,Slots):-term_singletons(Term, [],NS, [],S),append(NS,S,Slots).
+term_slots(Term,Slots):-term_singleslots(Term, [],NS, [],S),append(NS,S,Slots).
 
 
 %=
 
-%% term_singletons( ?A, ?Vs) is semidet.
+%% term_singleslots( ?A, ?Vs) is semidet.
 %
-% Hook To [mpred_type_wff:term_singletons/2] For Module Logicmoo_varnames.
+% Hook To [mpred_type_wff:term_singleslots/2] For Module Logicmoo_varnames.
 % Term Singletons.
 %
-term_singletons(A,Vs):- notrace(term_singletons(A,[],_,[],Vs)).
-%= %= :- was_export(term_singletons/3).
+term_singleslots(A,Vs):- notrace(term_singleslots(A,[],_,[],Vs)).
+%= %= :- was_export(term_singleslots/3).
 
 %=
 
-%% term_singletons( ?Term, ?NonSingle, ?Singles) is semidet.
+%% term_singleslots( ?Term, ?NonSingle, ?Singles) is semidet.
 %
-% Hook To [mpred_type_wff:term_singletons/3] For Module Logicmoo_varnames.
+% Hook To [mpred_type_wff:term_singleslots/3] For Module Logicmoo_varnames.
 % Term Singletons.
 %
-term_singletons(Term,NonSingle,Singles):- notrace(term_singletons(Term,[],NonSingle,[],Singles)).
-%= %= :- was_export(term_singletons/5).
+term_singleslots(Term,NonSingle,Singles):- notrace(term_singleslots(Term,[],NonSingle,[],Singles)).
+%= %= :- was_export(term_singleslots/5).
 
 %=
 
-%% term_singletons( :TermFml, ?NS, ?NS, ?S, ?S) is semidet.
+%% term_singleslots( :TermFml, ?NS, ?NS, ?S, ?S) is semidet.
 %
-% Hook To [mpred_type_wff:term_singletons/5] For Module Logicmoo_varnames.
+% Hook To [mpred_type_wff:term_singleslots/5] For Module Logicmoo_varnames.
 % Term Singletons.
 %
-term_singletons(Fml, NS,NS, S,S):- atomic(Fml),!.
-term_singletons(Fml, NS,NS, S,S):- identical_memberchk(Fml,NS),!.
-term_singletons(Fml, NS, [Fml|NS], S, NSV):- is_ftVar(Fml),identical_memberchk(Fml,S),!,delete_eq(S,Fml,NSV),!.
-term_singletons(Fml, NS, NS, S, [Fml|S]):- is_ftVar(Fml),!.
-term_singletons([H|T],NS,NSO,S,NSV):- !, term_singletons(H,NS,NSM,S,M),term_singletons(T,NSM,NSO,M,NSV).
-term_singletons(Fml, NS,NSO, S,NSV):- compound(Fml),Fml=..[_|T],!, term_singletons(T, NS,NSO, S,NSV).
+term_singleslots(Fml, NS,NS, S,S):- atomic(Fml),!.
+term_singleslots(Fml, NS,NS, S,S):- identical_memberchk(Fml,NS),!.
+term_singleslots(Fml, NS, [Fml|NS], S, NSV):- is_ftVar(Fml),identical_memberchk(Fml,S),!,delete_eq(S,Fml,NSV),!.
+term_singleslots(Fml, NS, NS, S, [Fml|S]):- is_ftVar(Fml),!.
+term_singleslots([H|T],NS,NSO,S,NSV):- !, term_singleslots(H,NS,NSM,S,M),term_singleslots(T,NSM,NSO,M,NSV).
+term_singleslots(Fml, NS,NSO, S,NSV):- compound(Fml),Fml=..[_|T],!, term_singleslots(T, NS,NSO, S,NSV).
 
 
 %=
@@ -919,7 +921,7 @@ save_clause_vars(_M,H,_MB,B,Vs,Why):- ain00(varname_cache:varname_info(H,B,Vs,Wh
 %
 % Assert If New Primary Helper Primary Helper.
 %
-ain00(A):- hook_database:clause_asserted(A),!.
+ain00(A):- clause_asserted(A),!.
 ain00(A):- assertz(A).
 
 
@@ -1470,11 +1472,11 @@ prolog:make_hook(before, Files):-forall(member(File,Files),retractall(varname_ca
 
 %% term_expansion( :TermFDecl, ?Clause) is semidet.
 %
-% Hook To [system:term_expansion/2] For Module Logicmoo_varnames.
+% Hook To [user:term_expansion/2] For Module Logicmoo_varnames.
 % Term Expansion.
 %
 user:term_expansion(HB,_):- current_prolog_flag(source_variables,true),term_expansion_save_vars(HB),fail.
 
-:- use_module(library(logicmoo_util_common)).
+% :- use_module(library(logicmoo_util_common)).
 :- fixup_exports.
 

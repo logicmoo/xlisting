@@ -19,7 +19,7 @@
           use_xlisting/1,
           get_print_mode/1,               
           pi_to_head_l/2,
-          xlisting0/1,
+          xlisting_1/1,
             bad_pred/1,
             blob_info/3,            
             bookeepingPredicateXRef/1,
@@ -746,25 +746,27 @@ xlisting:- xlisting([]).
 %
 % Xlisting.
 %
-xlisting(Match):- \+ \+ t_l:no_xlisting(Match),!.
-xlisting([]):- '$current_source_module'(M),!,listing(M:_),'$current_typein_module'(TM),(TM==M->true;listing(TM:_)),!.
-xlisting(Match):- is_list(Match),!,must_maplist(xlisting,Match),!.
-xlisting(F/A):-integer(A),!,functor(P,F,A),xlisting(P),!.
-xlisting(M:F/A):-integer(A),!,functor(P,F,A),xlisting(M:P),!.
-xlisting(Match):- 
+xlisting(Match):- retractall(t_l:no_xlisting(Match)),xlisting_0(Match).
+
+xlisting_0(Match):- \+ \+ t_l:no_xlisting(Match),!.
+xlisting_0([]):- '$current_source_module'(M),!,listing(M:_),'$current_typein_module'(TM),(TM==M->true;listing(TM:_)),!.
+xlisting_0(Match):- is_list(Match),!,must_maplist(xlisting_0,Match),!.
+xlisting_0(F/A):-integer(A),!,functor(P,F,A),xlisting_0(P),!.
+xlisting_0(M:F/A):-integer(A),!,functor(P,F,A),xlisting_0(M:P),!.
+xlisting_0(Match):- 
  % maybe_scan_for_varnames,
  locally(t_l:no_xlisting(Match),
   locally(set_prolog_flag(verbose_autoload,false),
    locally(set_prolog_flag(retry_undefined,false),
     locally(set_prolog_flag(verbose_load,false), 
-     xlisting0(Match))))).
+     xlisting_1(Match))))).
 
 
-xlisting0(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_pi(Match,PI),SkipPI),!,
+xlisting_1(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_pi(Match,PI),SkipPI),!,
   mpred_match_listing_skip_pi(Match,[_:varname_info(_,_,_,_)|SkipPI]),!.
-xlisting0(f(Match)):- !,xlisting_inner(portray_hbr,Match,[_:varname_info(_,_,_,_)]),!.
+xlisting_1(f(Match)):- !,xlisting_inner(portray_hbr,Match,[_:varname_info(_,_,_,_)]),!.
 
-xlisting0(Match):- mpred_match_listing_skip_pi(Match,[]),!. % ,locally(t_l:no_xlisting(Match),plisting(Match)),!.
+xlisting_1(Match):- mpred_match_listing_skip_pi(Match,[]),!. % ,locally(t_l:no_xlisting(Match),plisting(Match)),!.
 
 % baseKB:xlisting(G):-xlisting:xlisting(G).
 % listing with varnames
