@@ -644,7 +644,6 @@ term_singleslots(A,Vs):- notrace(term_singleslots(A,[],_,[],Vs)).
 
 %% term_singleslots( ?Term, ?NonSingle, ?Singles) is semidet.
 %
-% Hook To [mpred_type_wff:term_singleslots/3] For Module Logicmoo_varnames.
 % Term Singletons.
 %
 term_singleslots(Term,NonSingle,Singles):- notrace(term_singleslots(Term,[],NonSingle,[],Singles)).
@@ -652,9 +651,8 @@ term_singleslots(Term,NonSingle,Singles):- notrace(term_singleslots(Term,[],NonS
 
 %=
 
-%% term_singleslots( :TermFml, ?NS, ?NS, ?S, ?S) is semidet.
+%% term_singleslots( :TermFml, +NonSinglesIn, -NonSinglesOut, +SinglesIn, -SinglesOut) is semidet.
 %
-% Hook To [mpred_type_wff:term_singleslots/5] For Module Logicmoo_varnames.
 % Term Singletons.
 %
 term_singleslots(Fml, NS,NS, S,S):- atomic(Fml),!.

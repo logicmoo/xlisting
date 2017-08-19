@@ -1200,8 +1200,11 @@ real_list_undefined(A):-
 %
 % Mmake.
 %
-mmake:- lmcache:thread_main(user,Main), \+ thread_self(Main), !.
-mmake:- lmcache:thread_main(user,Main),!,thread_signal(Main,catch(((ignore(update_changed_files), ignore(if_defined(mpred_update_changed_files,true)))),_,true)).
+% mmake:- lmcache:thread_main(user,Main), \+ thread_self(Main), !.
+
+% mmake:- lmcache:thread_main(user,Main),!,thread_signal(Main,catch(((ignore(update_changed_files), ignore(if_defined(mpred_update_changed_files,true)))),_,true)).
+mmake:- thread_signal(main,catch(((ignore(update_changed_files), ignore(if_defined(mpred_update_changed_files,true)))),_,true)).
+
 
 :- export(update_changed_files/0).
 
@@ -1228,23 +1231,25 @@ update_changed_files0 :- get_main_error_stream(Err),!,with_output_to(Err,update_
 % Update Changed Files Secondary Helper.
 %
 update_changed_files1 :- 
+ locally(set_prolog_flag(verbose_load,true),
    with_no_dmsg((
-        set_prolog_flag(verbose_load,true),
-        ensure_loaded(library(make)),
-	findall(File, make:modified_file(File), Reload0),
-	list_to_set(Reload0, Reload),
-	(   prolog:make_hook(before, Reload)
-	->  true
-	;   true
-	),
-	print_message(silent, make(reload(Reload))),
-	make:maplist(reload_file, Reload),
-	print_message(silent, make(done(Reload))),
-	(   prolog:make_hook(after, Reload)
-	->  true
-   ;
-           true %list_undefined,list_void_declarations
-	))).
+        
+        '$update_library_index',
+    findall(File, modified_file(File), Reload0),
+    list_to_set(Reload0, Reload),
+    (   prolog:make_hook(before, Reload)
+    ->  true
+    ;   true
+    ),
+    print_message(silent, make(reload(Reload))),
+    maplist(reload_file, Reload),
+    print_message(silent, make(done(Reload))),
+    (   prolog:make_hook(after, Reload)
+    ->  true
+    ;   nop(list_undefined),
+        nop(list_void_declarations)
+    )))).
+    
 
 :- export(remove_undef_search/0).
 % check:list_undefined:-real_list_undefined([]).
