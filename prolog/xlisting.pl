@@ -757,7 +757,7 @@ xlisting_0(Match):-
  % maybe_scan_for_varnames,
  locally(t_l:no_xlisting(Match),
   locally(set_prolog_flag(verbose_autoload,false),
-   locally(set_prolog_flag(retry_undefined,false),
+   locally(set_prolog_flag(retry_undefined, none),
     locally(set_prolog_flag(verbose_load,false), 
      xlisting_1(Match))))).
 
@@ -1232,10 +1232,10 @@ update_changed_files0 :- get_main_error_stream(Err),!,with_output_to(Err,update_
 %
 update_changed_files1 :- 
  locally(set_prolog_flag(verbose_load,true),
-   with_no_dmsg((
+   with_no_dmsg(make:((
         
         '$update_library_index',
-    findall(File, modified_file(File), Reload0),
+    findall(File, make:modified_file(File), Reload0),
     list_to_set(Reload0, Reload),
     (   prolog:make_hook(before, Reload)
     ->  true
@@ -1248,7 +1248,7 @@ update_changed_files1 :-
     ->  true
     ;   nop(list_undefined),
         nop(list_void_declarations)
-    )))).
+    ))))).
     
 
 :- export(remove_undef_search/0).
