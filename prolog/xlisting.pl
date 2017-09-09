@@ -632,7 +632,7 @@ baseKB:shared_hide_data(wid):- is_listing_hidden(hideMeta).
 %
 % Listing Filter.
 %
-is_listing_hidden(P):-notrace(is_listing_hidden_00(P)).
+is_listing_hidden(P):-quietly(is_listing_hidden_00(P)).
 
 :- baseKB:import(xlisting:is_listing_hidden/1).
 
@@ -860,7 +860,7 @@ xlisting_inner(Pred,Match,SkipPI):-
 % Hook To [user:prolog_list_goal/1] For Module Logicmoo_util_term_listing.
 % Prolog List Goal.
 %
-user:prolog_list_goal(Goal):- notrace(xlisting(Goal)). % writeq(hello(prolog_list_goal(Goal))),nl.
+user:prolog_list_goal(Goal):- quietly(xlisting(Goal)). % writeq(hello(prolog_list_goal(Goal))),nl.
 
 
 % :- dynamic(buggery_ok/0).
@@ -943,8 +943,8 @@ plisting_1:-plisting(spft(_,_,_,_)).
 %
 % Synth Clause For.
 %
-synth_clause_for(G,true,0,244,SYNTH):-  bookeepingPredicateXRef(G), notrace(( \+ is_listing_hidden(hideMeta))), SYNTH=on_x_fail(G).
-synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), ((notrace(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), 
+synth_clause_for(G,true,0,244,SYNTH):-  bookeepingPredicateXRef(G), quietly(( \+ is_listing_hidden(hideMeta))), SYNTH=on_x_fail(G).
+synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), ((quietly(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), 
                                                                 \+ is_listing_hidden(G))))), 
                                                                 SYNTH = (synth_clause_ref(G,B,Ref,Size,SYNTH2),SYNTH2).
 synth_clause_for(G,true,0,222, SYNTH):-  sourceTextPredicate(G), \+ is_listing_hidden(G), SYNTH = on_x_fail(G).
@@ -1344,8 +1344,8 @@ catch_each(M:G,E,Or):-
 %
 % Portray One Line.
 %
-portray_one_line(H):- notrace((tlbugger:no_slow_io,!, writeq(H),write('.'),nl)),!.
-portray_one_line(H):-  notrace((catch_each(portray_one_line0(H),_,(writeq(H),write('.'),nl)))),!.
+portray_one_line(H):- quietly((tlbugger:no_slow_io,!, writeq(H),write('.'),nl)),!.
+portray_one_line(H):-  quietly((catch_each(portray_one_line0(H),_,(writeq(H),write('.'),nl)))),!.
 
 portray_one_line0(H):- baseKB:portray_one_line_hook(H),!.
 portray_one_line0(H):- maybe_separate(H,(format('~N'))),fail.

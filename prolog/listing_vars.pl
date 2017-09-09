@@ -246,7 +246,7 @@ vn:project_attributes(QueryVars, ResidualVars):- fail,dmsg(vn:proj_attrs(vn,Quer
 %
 vn:attribute_goals(Var) --> {get_var_name(Var,  Name)},!,[name_variable(Var,  Name)],!.
 
-get_var_name(V,N):-notrace(get_var_name0(V,N)),!.
+get_var_name(V,N):-quietly(get_var_name0(V,N)),!.
 
 get_var_name0(Var,Name):- nonvar(Name),!,must(get_var_name0(Var, NameO)),!,Name=NameO.
 get_var_name0(Var,Name):- nonvar(Var),!,get_var_name1(Var,Name),!.
@@ -376,8 +376,8 @@ portray_attvar(Var) :-
 %
 % Vmust.
 %
+vmust(G):-!,must(G).
 vmust(G):-!,call(G).
-vmust(G):-must(G).
 
 
 %=
@@ -418,8 +418,8 @@ all_different_vals(Term):-all_different_vals(dif_matrix,Term).
 % All Different Variables.
 %
 all_different_vars(_):- t_l:dont_varname,!.
-all_different_vars(A):-(notrace((all_disjoint_in_sets(dif_matrix,A,A)))),!.
-all_different_vars(A):-must(notrace((all_disjoint_in_sets(dif_matrix,A,A)))),!.
+all_different_vars(A):-(quietly((all_disjoint_in_sets(dif_matrix,A,A)))),!.
+all_different_vars(A):-must(quietly((all_disjoint_in_sets(dif_matrix,A,A)))),!.
 all_different_vars(A):-all_different_vals(v_dif_rest,A),!.
 
 
@@ -429,7 +429,7 @@ all_different_vars(A):-all_different_vals(v_dif_rest,A),!.
 % All Different Vals.
 %
 all_different_vals(Pred,Term):-
- must(notrace(( (is_list(Term)-> Slots = Term ; term_slots(Term,Slots)),!,
+ must(quietly(( (is_list(Term)-> Slots = Term ; term_slots(Term,Slots)),!,
                                  all_disjoint_in_sets(Pred,Slots,Slots)))).
 
 %% all_different_vals(:PRED2, +SET1, +SET2) is semidet.
@@ -490,7 +490,7 @@ subterm_path(Sub,Term,[arg(N)|Path]):-compound(Term),!,arg(N,Term,TermE),subterm
 %
 % Get Clause Variables.
 %
-get_clause_vars(CV):- notrace(get_clause_vars_nontraced(CV)).
+get_clause_vars(CV):- quietly(get_clause_vars_nontraced(CV)).
 :- export(get_clause_vars_nontraced/1).
 
 %=
@@ -637,7 +637,7 @@ term_slots(Term,Slots):-term_singleslots(Term, [],NS, [],S),append(NS,S,Slots).
 % Hook To [mpred_type_wff:term_singleslots/2] For Module Logicmoo_varnames.
 % Term Singletons.
 %
-term_singleslots(A,Vs):- notrace(term_singleslots(A,[],_,[],Vs)).
+term_singleslots(A,Vs):- quietly(term_singleslots(A,[],_,[],Vs)).
 %= %= :- was_export(term_singleslots/3).
 
 %=
@@ -646,7 +646,7 @@ term_singleslots(A,Vs):- notrace(term_singleslots(A,[],_,[],Vs)).
 %
 % Term Singletons.
 %
-term_singleslots(Term,NonSingle,Singles):- notrace(term_singleslots(Term,[],NonSingle,[],Singles)).
+term_singleslots(Term,NonSingle,Singles):- quietly(term_singleslots(Term,[],NonSingle,[],Singles)).
 %= %= :- was_export(term_singleslots/5).
 
 %=
@@ -960,9 +960,9 @@ ensure_vars_labled_r(I,O):- copy_term_and_varnames(I,O),I\=@=O.
 %
 % Copy Term And Varnames.
 %
-copy_term_and_varnames(Term,Named):- notrace((unnumbervars(Term,UNV),copy_term(UNV,Named))),!.
+copy_term_and_varnames(Term,Named):- quietly((unnumbervars(Term,UNV),copy_term(UNV,Named))),!.
 copy_term_and_varnames(Term,Named):-
-   notrace((ignore((source_variables_lv(AllS))), copy_term(Term+AllS,Named+CAllS),maplist(set_varname([write_functor,b_setarg]),CAllS))).
+   quietly((ignore((source_variables_lv(AllS))), copy_term(Term+AllS,Named+CAllS),maplist(set_varname([write_functor,b_setarg]),CAllS))).
 
 
 %=
@@ -972,7 +972,7 @@ copy_term_and_varnames(Term,Named):-
 % Renumbervars.
 %
 renumbervars(How,Term,Named):-
-   notrace((ignore((source_variables_lv(AllS))),
+   quietly((ignore((source_variables_lv(AllS))),
    copy_term(Term+AllS,Named+CAllS),
    maplist(set_varname(How),CAllS))).
 
@@ -989,7 +989,7 @@ renumbervars(How,Term,Named):-
 source_variables_lv(AllS):-
   (prolog_load_context(variable_names,Vs1);Vs1=[]),
   (get_varname_list(Vs2);Vs2=[]),
-  % notrace(catch((parent_goal('$toplevel':'$execute_goal2'(_, Vs3),_);Vs3=[]),E,(writeq(E),Vs3=[]))),
+  % quietly(catch((parent_goal('$toplevel':'$execute_goal2'(_, Vs3),_);Vs3=[]),E,(writeq(E),Vs3=[]))),
   ignore(Vs3=[]),
   append(Vs1,Vs2,Vs12),append(Vs12,Vs3,All),!,list_to_set(All,AllS),
   set_varname_list( AllS).
@@ -1055,9 +1055,9 @@ call_not_not(Goal):- \+ \+ Goal.
 %
 % Contains Badvarnames.
 %
-contains_badvarnames(Term):-  notrace((sub_term(SubV,Term),compound(SubV),SubV='$VAR'(Sub),bad_varnamez(Sub))),!.
+contains_badvarnames(Term):-  quietly((sub_term(SubV,Term),compound(SubV),SubV='$VAR'(Sub),bad_varnamez(Sub))),!.
 
-contains_dvar(Term):-notrace((sub_term(SubV,Term),compound(SubV),SubV='$VAR'(_),!)).
+contains_dvar(Term):-quietly((sub_term(SubV,Term),compound(SubV),SubV='$VAR'(_),!)).
 
 %=
 
@@ -1243,7 +1243,7 @@ que_read_source_file_vars(F):-ain00(varname_cache:queued_read_source_file_vars(F
 %
 % Dirrectly Call If While Being Descriptive.
 %
-dcall_if_verbose(G):-!, notrace(G).
+dcall_if_verbose(G):-!, quietly(G).
 dcall_if_verbose(G):-show_call(why,G).
 
 %  list_undefined([module_class([user,system,library,test,temporary,development])]).
@@ -1363,7 +1363,7 @@ ensure_vars_labled(I,I).
 % Portray.
 %
 user:portray(A) :- fail, \+ tracing,
-  catch(notrace(((compound(A);var(A)), current_prolog_flag(source_variables, true), set_prolog_flag(source_variables, false),
+  catch(quietly(((compound(A);var(A)), current_prolog_flag(source_variables, true), set_prolog_flag(source_variables, false),
     call_cleanup((((user:portray(A) -> ! ; print_numbervars_maybe(A)))),set_prolog_flag(source_variables, true)))),E,(writeq(E),nl,fail)).
 
 
