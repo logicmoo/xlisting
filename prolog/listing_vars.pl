@@ -194,7 +194,7 @@
 :- meta_predicate dcall_if_verbose(0).
 
 :- reexport(library(lockable_vars)).
-:- use_module(library(dictoo)).
+% :- use_module(library(dictoo_lib)).
 
 
 %%	name_variable(+Var, +Name) is det.
