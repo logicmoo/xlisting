@@ -1549,6 +1549,7 @@ get_print_mode(text).
 
 :- abolish(user:listing/1).
 :- reconsult(library(listing)).
+:- user:reconsult(library(listing)).
 
 :- redefine_system_predicate(prolog_listing:portray_clause/3).
 :- abolish(prolog_listing:portray_clause/3).

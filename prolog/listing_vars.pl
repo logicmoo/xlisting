@@ -296,7 +296,7 @@ vn:attr_unify_hook(_Form, _OtherValue):-!.
 
 
 unify_name_based(Var1, Var2):- \+ atom(Var1),get_var_name_or_ref(Var1,Name),!,unify_name_based(Name, Var2).
-unify_name_based(_Form, _OtherValue):- t_l:no_kif_var_coroutines(G),!,call(G).
+unify_name_based(_Form, _OtherValue):- local_override(no_kif_var_coroutines,G),!,call(G).
 unify_name_based(Name1, Var):-  get_var_name(Var,Name2),!,Name1=Name2,!.
 unify_name_based(Name1, Var):- get_attr(Var, vn, Name2),!,combine_names(Name1,Name2,Name),(Name2==Name->true;put_attr(Var,vn,Name)).
 unify_name_based(Name1, Var):- var(Var),!,put_attr(Var, vn, Name1).
@@ -961,8 +961,7 @@ ensure_vars_labled_r(I,O):- copy_term_and_varnames(I,O),I\=@=O.
 % Copy Term And Varnames.
 %
 copy_term_and_varnames(Term,Named):- quietly((unnumbervars(Term,UNV),copy_term(UNV,Named))),!.
-copy_term_and_varnames(Term,Named):-
-   quietly((ignore((source_variables_lv(AllS))), copy_term(Term+AllS,Named+CAllS),maplist(set_varname([write_functor,b_setarg]),CAllS))).
+copy_term_and_varnames(Term,Named):- quietly((ignore((source_variables_lv(AllS))), copy_term(Term+AllS,Named+CAllS),maplist(set_varname([write_functor,b_setarg]),CAllS))).
 
 
 %=
@@ -972,7 +971,8 @@ copy_term_and_varnames(Term,Named):-
 % Renumbervars.
 %
 renumbervars(How,Term,Named):-
-   quietly((ignore((source_variables_lv(AllS))),
+   quietly((
+   must_det((source_variables_lv(AllS);AllS=[])),
    copy_term(Term+AllS,Named+CAllS),
    maplist(set_varname(How),CAllS))).
 
