@@ -194,6 +194,7 @@
 :- meta_predicate dcall_if_verbose(0).
 
 :- reexport(library(lockable_vars)).
+:- use_module(library(with_thread_local)).
 % :- use_module(library(dictoo_lib)).
 
 
