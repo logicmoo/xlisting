@@ -889,8 +889,8 @@ buggery_ok :- \+ compiling, current_predicate(_:logicmoo_bugger_loaded/0), \+ ba
 %
 % Bookeeping Predicate X Ref.
 %
-bookeepingPredicateXRef(_:file_search_path(_,_)).
-bookeepingPredicateXRef(_:G):-member(F/A,[xref_defined/3,xref_called/3,xref_exported/2]),functor(G,F,A).
+bookeepingPredicateXRef(user:file_search_path(_,_)).
+%bookeepingPredicateXRef(_:G):-member(F/A,[xref_defined/3,xref_called/3,xref_exported/2]),functor(G,F,A).
 
 %= 	 	 
 
@@ -943,12 +943,18 @@ plisting_1:-plisting(spft(_,_,_,_)).
 %
 % Synth Clause For.
 %
+:- multifile(xlisting_config:xlisting_always/1).
+:- dynamic(xlisting_config:xlisting_always/1).
+synth_clause_for(G,true,0,222, SYNTH):- G=M:H, xlisting_config:xlisting_always(G),
+   SYNTH = m_clause(M,H,_B,_Ref).
+   %SYNTH = on_x_fail(G).
+
 synth_clause_for(G,true,0,244,SYNTH):-  bookeepingPredicateXRef(G), quietly(( \+ is_listing_hidden(hideMeta))), SYNTH=on_x_fail(G).
-synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), ((quietly(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), 
+synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), (((quietly(( \+ bookeepingPredicateXRef(G), \+ sourceTextPredicate(G), 
                                                                 \+ is_listing_hidden(G))))), 
-                                                                SYNTH = (synth_clause_ref(G,B,Ref,Size,SYNTH2),SYNTH2).
+                                                                SYNTH = (synth_clause_ref(G,B,Ref,Size,SYNTH2),SYNTH2)).
 synth_clause_for(G,true,0,222, SYNTH):-  sourceTextPredicate(G), \+ is_listing_hidden(G), SYNTH = on_x_fail(G).
-synth_clause_for(G,  B, Ref,Size, SYNTH):- \+ is_listing_hidden(skipLarge), gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
+synth_clause_for(G,  B, Ref,Size, SYNTH):- !, gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
  
 
 %= 	 	 
@@ -988,6 +994,19 @@ synth_clause_ref(_:varname_info(_,_,_,_),_B,_Ref,_Size, _CALL):- \+ is_listing_h
 
 synth_clause_ref(M:H,B,Ref, 250, SYNTH):- \+ is_listing_hidden(hideMeta), SYNTH= (findall(PP,predicate_property(M:H,PP),PPL),Ref=0,CPPL=..[pp|PPL],B=M:(pp(CPPL))).
 synth_clause_ref(MHG,B,Ref, 213, SYNTH):- predicateUsesCall(MHG),synth_in_listing(MHG), !, SYNTH= (on_x_fail(MHG),Ref=0,B=predicateUsedCall).
+
+synth_clause_ref(M:H,B,Ref, 200, SYNTH):-     
+    xlisting_config:xlisting_always(M:H),!, SYNTH= m_clause(M,H,B,Ref).
+
+synth_clause_ref(M:H,B,Ref, Size, SYNTH):- 
+    predicate_property(M:H,number_of_clauses(Size)),!, 
+    SYNTH= m_clause(M,H,B,Ref).
+
+
+synth_clause_ref(M:H,B,Ref, Size, SYNTH):- 
+    predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),!, 
+    xlisting_config:xlisting_always(M:H), SYNTH= m_clause(M,H,B,Ref).
+
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),
   Size > 500000,  !,  is_listing_hidden(showHUGE), SYNTH = m_clause(M,H,B,Ref),synth_in_listing(M:H).
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),
