@@ -297,7 +297,7 @@ vn:attr_unify_hook0(_Form, _OtherValue):-!.
 
 
 
-unify_name_based(Var1, Var2):- \+ atom(Var1),get_var_name_or_ref(Var1,Name),!,unify_name_based(Name, Var2).
+unify_name_based(Var1, Var2):- \+ atom(Var1),variable_name_or_ref(Var1,Name),!,unify_name_based(Name, Var2).
 unify_name_based(_Form, _OtherValue):- local_override(no_kif_var_coroutines,G),!,call(G).
 unify_name_based(Name1, Var):-  get_var_name(Var,Name2),!,Name1=Name2,!.
 unify_name_based(Name1, Var):- get_attr(Var, vn, Name2),!,combine_names(Name1,Name2,Name),(Name2==Name->true;put_attr(Var,vn,Name)).
