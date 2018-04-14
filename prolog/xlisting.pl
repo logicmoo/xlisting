@@ -1560,7 +1560,8 @@ prolog_listing_portray_clause(Stream, Term, M:Options) :- fail,
 :- export(get_print_mode/1).
 get_print_mode(PM):- nonvar(PM),!,get_print_mode(PMR),!,PM==PMR.
 get_print_mode(PM):- t_l:print_mode(PM),!.
-get_print_mode(html):- on_x_log_fail(httpd_wrapper:http_current_request(_)).
+get_print_mode(html):- on_x_log_fail(httpd_wrapper:http_current_request(_)),!.
+get_print_mode(bhtml):- getenv('COLORTERM',butterfly),!.
 get_print_mode(text).
 
 
