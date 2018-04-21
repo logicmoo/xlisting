@@ -201,7 +201,12 @@
 :- set_module(class(library)).
 
 :- use_module(library(hook_hybrid)).
+:- use_module(library(each_call_cleanup)).
+:- use_module(library(with_thread_local)).
 :- use_module(library(virtualize_source)).
+:- use_module(library(attvar_serializer)).
+:- use_module(library(no_repeats)).
+
 
 :- thread_local(t_l:print_mode/1).
 
