@@ -49,7 +49,7 @@
             mmake/0,
             mp/3,            
             mpred_match_listing/1,
-            mpred_match_listing_skip_pi/2,
+            mpred_match_listing_skip_pi/3,
             mstatistics/0,
             new_atoms/2,
             nonvar_search/1,
@@ -112,7 +112,7 @@
 :- meta_predicate maybe_separate(*,0).
 :- meta_predicate maybe_separate_0(*,0).
 :- meta_predicate
-        mpred_match_listing_skip_pi(+, +),
+        mpred_match_listing_skip_pi(+,+, +),
         printAll(0),
         printAll(0, ?),
         unify_in_thread(+, 0),
@@ -332,7 +332,7 @@ print_clause_properties(REF, Out) :-
 %
 % Make Searchable Index.
 %
-make_searchable_index(PI):- forall(to_pi(PI,H),forall(clause(H,B,Ref),make_searchable_ref((H:-B),Ref))).
+make_searchable_index(PI):- forall(to_matcher_pi(PI,H),forall(clause(H,B,Ref),make_searchable_ref((H:-B),Ref))).
 
 
 %= 	 	 
@@ -679,6 +679,7 @@ unify_listing(Cntxt:Pred):-functor_safe(Pred,F,A),unify_listing(Cntxt:Pred,F,A),
 %
 % Unify Listing Header.
 %
+unify_listing_header(M:Pred):-!,functor_safe(Pred,F,A),unify_listing_header(M:Pred,F,A),!.
 unify_listing_header(Pred):-functor_safe(Pred,F,A),unify_listing_header(Pred,F,A),!.
 
 :- meta_predicate unify_listing_header(:,?,?).
@@ -689,13 +690,17 @@ unify_listing_header(Pred):-functor_safe(Pred,F,A),unify_listing_header(Pred,F,A
 %
 % Unify Listing Header.
 %
-unify_listing_header(CntxtPred,F,A):- (format('~n/* Prediate: ~q / ~q ~n',[F,A,CntxtPred])),fail.
-unify_listing_header(Cntxt:Pred,_F,_A):- Cntxt:printAll(predicate_property(Pred,PP),PP),fail.
-unify_listing_header(Cntxt:Pred,_F,_A):- (Cntxt:format('~n ~q. ~n */ ~n',[Pred])),fail.
-unify_listing_header(Cntxt:Pred,F,A):- Cntxt:predicate_property(Pred,dynamic),(format(':-dynamic(~q).~n',[F/A])),fail.
-unify_listing_header(Cntxt:Pred,F,A):- Cntxt:predicate_property(Pred,multifile),(format(':-multifile(~q).~n',[F/A])),fail.
-unify_listing_header(_Cntxt:_FileMatch,_F,_A).
+unify_listing_header(M:_,F,A):- (format('~n% -=<[ ~q ]>=-~n%~n%',[M:F/A])),fail.
+unify_listing_header(MP,_F,_A):- forall((system:predicate_property(MP,PP),\+ unify_listing_header_item(PP)),format(' ~w',[PP])),format('~n%~n~n',[]),fail.
+unify_listing_header(M:_P,F,A):- module_property(M,exports(List)),member(F/A,List),format(':- ~q:export(~q).~n',[M,M:F/A]),fail.
+unify_listing_header(M:P,F,A):- predicate_property(system:P,imported_from(M)),format(':- system:import(~q).~n',[M:F/A]),fail.
+unify_listing_header(M:P,F,A):- predicate_property(M:P,transparent),format(':- ~q:module_transparent(~q).~n',[M,F/A]),fail.
+unify_listing_header(M:P,_,_):- predicate_property(M:P,meta_predicate(P)),format(':- ~q:meta_predicate(~q).~n',[M,P]),fail.
+unify_listing_header(M:P,F,A):- unify_listing_header_item(Dynamic), 
+  predicate_property(M:P,Dynamic),format(':- ~q:~q(~q).~n',[M,Dynamic,F/A]),fail.
+unify_listing_header(_M_FileMatch,_F,_A):- format('~n',[]).
 
+unify_listing_header_item(Dynamic):- arg(_,v(public,dynamic, multifile,discontiguous,volatile,thread_local,nodebug),Dynamic).
 :- meta_predicate unify_listing(:,?,?).
 
 %= 	 	 
@@ -751,7 +756,7 @@ xlisting:- xlisting([]).
 %
 % Xlisting.
 %
-xlisting(Match):- retractall(t_l:no_xlisting(Match)),xlisting_0(Match).
+xlisting(Match):- retractall(lmcache:completely_expanded(_,_)),retractall(t_l:no_xlisting(Match)),xlisting_0(Match).
 
 xlisting_0(Match):- \+ \+ t_l:no_xlisting(Match),!.
 xlisting_0([]):- '$current_source_module'(M),!,listing(M:_),'$current_typein_module'(TM),(TM==M->true;listing(TM:_)),!.
@@ -767,11 +772,11 @@ xlisting_0(Match):-
      xlisting_1(Match))))).
 
 
-xlisting_1(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_pi(Match,PI),SkipPI),!,
-  mpred_match_listing_skip_pi(Match,[_:varname_info(_,_,_,_)|SkipPI]),!.
+xlisting_1(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_mpi_matcher(Match,PI),SkipPI),!,
+  mpred_match_listing_skip_pi(portray_hbr,Match,[_:varname_info(_,_,_,_)|SkipPI]),!.
 xlisting_1(f(Match)):- !,xlisting_inner(portray_hbr,Match,[_:varname_info(_,_,_,_)]),!.
 
-xlisting_1(Match):- mpred_match_listing_skip_pi(Match,[]),!. % ,locally(t_l:no_xlisting(Match),plisting(Match)),!.
+xlisting_1(Match):- mpred_match_listing_skip_pi(portray_hbr,Match,[]),!. % ,locally(t_l:no_xlisting(Match),plisting(Match)),!.
 
 % baseKB:xlisting(G):-xlisting:xlisting(G).
 % listing with varnames
@@ -792,7 +797,7 @@ plisting(Match):- locally(t_l:no_xlisting(Match),xlisting:plisting_0(Match)).
 %
 % plisting  Primary Helper.
 %
-plisting_0(Match):- findall(G,to_pi(Match,G),Gs),
+plisting_0(Match):- findall(G,to_mpi_matcher(Match,G),Gs),
   forall(member(H,Gs),ignore((synth_clause_for(H,B,R,_SIZE,SYNTH),SYNTH,once(portray_hbr(H,B,R)),fail))).
 
 
@@ -804,21 +809,21 @@ plisting_0(Match):- findall(G,to_pi(Match,G),Gs),
 %
 % Managed Predicate Match Listing.
 %
-mpred_match_listing(Match):- mpred_match_listing_skip_pi(Match,[]).
-:- export(mpred_match_listing_skip_pi/2).
-:- meta_predicate mpred_match_listing_skip_pi(+,+).
+mpred_match_listing(Match):- mpred_match_listing_skip_pi(portray_hbr,Match,[]).
+:- export(mpred_match_listing_skip_pi/3).
+:- meta_predicate(mpred_match_listing_skip_pi(+,+,+)).           
 
 %= 	 	 
 
-%% mpred_match_listing_skip_pi( +Match, +SkipPI) is semidet.
+%% mpred_match_listing_skip_pi(+How, +Match, +SkipPI) is semidet.
 %
 % Managed Predicate Match Listing Skip Predicate Indicator.
 %
-mpred_match_listing_skip_pi(Match,SkipPI):- 
+mpred_match_listing_skip_pi(How,Match,SkipPI):- 
   locally(t_l:no_xlisting(Match),
  (
   % format('~N/* mpred_matches(~q) => ~n',[Match]),
-   xlisting_inner(portray_hbr,Match,SkipPI),
+   xlisting_inner(How,Match,SkipPI),
   % format(' <= mpred_matches(~q) */ ~n',[Match]).
   !)).
 
@@ -1349,8 +1354,8 @@ portray_hbr(H,B,_):-portray_hb(H,B),!.
 %
 % Portray Head+body.
 %
-portray_hb(H,B):- B==true, !, portray_one_line(H), format('~N').
-portray_hb(H,B):- portray_one_line((H:-B)), format('~N').
+portray_hb(H,B):- B==true, !, format('~N'), portray_one_line(H),format('~N').
+portray_hb(H,B):- format('~N'), portray_one_line((H:-B)), format('~N').
 
 :- export(portray_one_line/1).
 :- thread_local(baseKB:portray_one_line_hook/1).
