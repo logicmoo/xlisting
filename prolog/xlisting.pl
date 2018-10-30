@@ -361,7 +361,7 @@ m_clause_no_missing(M,H,B,R):- catch(m_clause0(M,H,B,R),_,fail).
 m_clause0(M,H,B,R):- atom(M),!, M:clause(H,B,R).
 m_clause0(_,H,B,R):- clause(H,B,R).
 m_clause0(M,H,B,R):- atom(M),!, clause(H,M:B,R).
-
+                              
 :- thread_local(t_l:tl_hide_data/1).
 
 
@@ -647,6 +647,7 @@ is_listing_hidden(P):-quietly(is_listing_hidden_00(P)).
 %
 % Hide Data Primary Helper.
 %
+is_listing_hidden_00(_):- !, fail.
 is_listing_hidden_00(P):-var(P),!,fail.
 is_listing_hidden_00(~(_)):-!,fail.
 is_listing_hidden_00(hideMeta):-is_listing_hidden(showAll),!,fail.
@@ -656,7 +657,7 @@ is_listing_hidden_00(_/_):-!,fail.
 is_listing_hidden_00(rnc):-!,fail.
 is_listing_hidden_00(P):- compound(P),functor(P,F,A), (is_listing_hidden_00(F/A);is_listing_hidden_00(F)).
 is_listing_hidden_00(spft):- is_listing_hidden(hideMeta),!.
-is_listing_hidden_00(P):-predicate_property(P,number_of_clauses(N)),N > 50000,\+ is_listing_hidden(showAll), \+ is_listing_hidden(showHUGE),!.
+% %%% is_listing_hidden_00(P):- predicate_property(P,number_of_clauses(N)),N > 50000,\+ is_listing_hidden(showAll), \+ is_listing_hidden(showHUGE),!.
 is_listing_hidden_00(M:P):- atom(M),(is_listing_hidden(M);is_listing_hidden_00(P)).
 
 
@@ -774,6 +775,7 @@ xlisting_0(Match):-
 
 xlisting_1(Match):- t_l:in_prolog_listing(Match),!,findall(PI,to_mpi_matcher(Match,PI),SkipPI),!,
   mpred_match_listing_skip_pi(portray_hbr,Match,[_:varname_info(_,_,_,_)|SkipPI]),!.
+
 xlisting_1(f(Match)):- !,xlisting_inner(portray_hbr,Match,[_:varname_info(_,_,_,_)]),!.
 
 xlisting_1(Match):- mpred_match_listing_skip_pi(portray_hbr,Match,[]),!. % ,locally(t_l:no_xlisting(Match),plisting(Match)),!.
@@ -798,7 +800,9 @@ plisting(Match):- locally(t_l:no_xlisting(Match),xlisting:plisting_0(Match)).
 % plisting  Primary Helper.
 %
 plisting_0(Match):- findall(G,to_mpi_matcher(Match,G),Gs),
-  forall(member(H,Gs),ignore((synth_clause_for(H,B,R,_SIZE,SYNTH),SYNTH,once(portray_hbr(H,B,R)),fail))).
+  forall(member(H,Gs),
+    ignore((synth_clause_for(H,B,R,_SIZE,SYNTH),SYNTH,
+     once(portray_hbr(H,B,R)),fail))).
 
 
 :- export(mpred_match_listing/1).
@@ -846,7 +850,7 @@ get_matcher_code(Match,H,B,MATCHER):-  MATCHER = term_matches_hb(Match,H,B).
 %
 % Xlisting Inner.
 %
-xlisting_inner(Pred,Match,SkipPI):- 
+xlisting_inner(Pred,Match,SkipPI):-  
  must_det_l((
    get_matcher_code(Match,H,B,MATCHER),
    PRINT = must(ignore((once(call(Pred,H,B,Ref))))),   
@@ -859,6 +863,7 @@ xlisting_inner(Pred,Match,SkipPI):-
          ; 
 
         ((forall(SYNTH,(MATCHER->PRINT;true))))))))),!.
+ 
       
 
 :- multifile user:prolog_list_goal/1.
@@ -900,6 +905,7 @@ buggery_ok :- \+ compiling, current_predicate(_:logicmoo_bugger_loaded/0), \+ ba
 % Bookeeping Predicate X Ref.
 %
 bookeepingPredicateXRef(user:file_search_path(_,_)).
+bookeepingPredicateXRef(wordnet:s(_,_,_,_,_,_)).
 %bookeepingPredicateXRef(_:G):-member(F/A,[xref_defined/3,xref_called/3,xref_exported/2]),functor(G,F,A).
 
 %= 	 	 
@@ -919,7 +925,9 @@ predicateUsesCall(_:G):-
 %
 % Source Text Predicate.
 %
-sourceTextPredicate(M:G):- M=el_assertions, source_file((M:el_holds(_,_,_,_,_,_,_)),F) -> source_file(M:G,F).
+
+sourceTextPredicate(M:G):- fail, M=el_assertions, source_file((M:el_holds(_,_,_,_,_,_,_)),F) -> source_file(M:G,F).
+
 %sourceTextPredicate(el_assertions:G):- between(4,16,A),functor(G,el_holds,A),current_predicate(_,el_assertions:G).
 %sourceTextPredicate(el_assertions:G):- between(4,16,A),functor(G,el_holds_implies,A),current_predicate(_,el_assertions:G).
 %sourceTextPredicate(el_assertions:G):- between(4,16,A),functor(G,el_holds_implies_t,A),current_predicate(_,el_assertions:G).
@@ -964,7 +972,8 @@ synth_clause_for(G,B,Ref,Size,SYNTH):- cur_predicate(_,G), (((quietly(( \+ booke
                                                                 \+ is_listing_hidden(G))))), 
                                                                 SYNTH = (synth_clause_ref(G,B,Ref,Size,SYNTH2),SYNTH2)).
 synth_clause_for(G,true,0,222, SYNTH):-  sourceTextPredicate(G), \+ is_listing_hidden(G), SYNTH = on_x_fail(G).
-synth_clause_for(G,  B, Ref,Size, SYNTH):- !, gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
+synth_clause_for(G,  B, Ref,Size, SYNTH):- !, 
+  gripe_time(10,synth_clause_for_l2(G,B,Ref,Size,SYNTH)).
  
 
 %= 	 	 
@@ -1017,11 +1026,17 @@ synth_clause_ref(M:H,B,Ref, Size, SYNTH):-
     predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),!, 
     xlisting_config:xlisting_always(M:H), SYNTH= m_clause(M,H,B,Ref).
 
+synth_clause_ref(M:H,B,Ref, Size, SYNTH):- 
+    predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),!, 
+    SYNTH= m_clause(M,H,B,Ref).
+
+/*
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),
   Size > 500000,  !,  is_listing_hidden(showHUGE), SYNTH = m_clause(M,H,B,Ref),synth_in_listing(M:H).
 synth_clause_ref(M:H,B,Ref,Size, SYNTH):- predicate_property(M:H,number_of_clauses(Size)),synth_in_listing(M:H),
   (Size > 5000 ->  ( \+ is_listing_hidden(skipLarge), asserta(t_l:large_predicates(M:H,Size)),fail) ; SYNTH = m_clause(M,H,B,Ref)).
 
+*/
 
 
 %= 	 	 
