@@ -1,6 +1,6 @@
 name(xlisting).
 title('Selective Interactive Non-Deterministic Tracing').
-version('1.1.118').
+version('1.2.111').
 download('https://github.com/TeamSPoon/xlisting/releases/*.zip').
 author( 'Douglas R. Miles', 'logicmoo@gmail.com' ).
 packager( 'TeamSPoon/LogicMoo', 'https://github.com/TeamSPoon/' ).
